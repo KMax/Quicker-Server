@@ -22,11 +22,13 @@ public class NoteResource {
 
 	/**
 	 * Retrieves representation of an instance of rest.NoteResource
+	 * @param id
 	 * @return an instance of java.lang.String
 	 */
 	@GET
     @Produces("application/xml")
-	public String getXml(@PathParam("id") int id) {
-		return "<note id='"+id+"' />";
+	public String getNote(@PathParam("id") int id) {
+		return "<note id='"+id+"' ><title>Пробная заметка</title>" +
+				"<text>блая блая блая блая блая блая</text></note>";
 	}
 }
