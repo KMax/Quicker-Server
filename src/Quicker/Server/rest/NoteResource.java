@@ -1,4 +1,4 @@
-package rest;
+package Quicker.Server.rest;
 
 import java.net.URI;
 import javax.ws.rs.Consumes;

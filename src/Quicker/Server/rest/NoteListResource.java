@@ -1,4 +1,4 @@
-package rest;
+package Quicker.Server.rest;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
