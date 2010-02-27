@@ -6,10 +6,12 @@ import com.xhive.core.interfaces.XhiveSessionIf;
 import com.xhive.dom.interfaces.XhiveLibraryChildIf;
 import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.error.XhiveException;
+import com.xhive.query.interfaces.XhiveQueryResultIf;
+import java.util.Iterator;
 import javax.ejb.Stateless;
 
 /**
- * 
+ * This class encapsulate the low-level operations on xDB.
  */
 @Stateless
 public class Database{
@@ -44,15 +46,31 @@ public class Database{
 
 	/**
 	 * 
-	 * @param path - Путь от корневой библиотеки
-	 * @param doc - XML-документ
+	 * @param path - Path from root library
+	 * @param doc - XML-document
 	 */
 	public void addDocument(String path,String doc){
 		
 	}
 
-	public String executeQuery(String query){
-		return query;
+	/**
+	 * 
+	 * @param query
+	 * @return XML-document
+	 */
+	public Iterator executeXQueryQuery(String query){
+		Iterator result = rootLibrary.executeXQuery(query);
+		return result;
+	}
+
+	/**
+	 *
+	 * @param query
+	 * @return
+	 */
+	public XhiveQueryResultIf executeXPathQuery(String query){
+		XhiveQueryResultIf result = rootLibrary.executeXPathQuery(query);
+		return result;
 	}
 
 }
