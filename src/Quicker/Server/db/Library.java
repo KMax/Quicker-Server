@@ -54,6 +54,7 @@ public class Library {
 		LSParser builder = library.createLSParser();
 		LSInput i = library.createLSInput();
 		i.setStringData(doc);
+		//FIXME
 		//Обработать DOMException, LSException
 		Document d = builder.parse(i);
 	}
