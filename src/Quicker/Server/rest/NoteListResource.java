@@ -1,5 +1,6 @@
 package Quicker.Server.rest;
 
+import javax.ejb.Stateless;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;
@@ -10,7 +11,8 @@ import javax.ws.rs.Produces;
  * REST Web Service
  */
 
-@Path("notes/")
+@Path("/{user}/notes/")
+@Stateless
 public class NoteListResource {
     @Context
     private UriInfo context;

@@ -1,6 +1,7 @@
 package Quicker.Server.rest;
 
 import java.net.URI;
+import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.core.Context;
@@ -17,7 +18,8 @@ import javax.ws.rs.core.Response;
  * REST Веб-сервис
  */
 
-@Path("/note/")
+@Path("/{user}/note/")
+@Stateless
 public class NoteResource {
     @Context
     private UriInfo context;
@@ -68,6 +70,8 @@ public class NoteResource {
 	@POST
 	@Consumes("application/xml")
 	public Response addNote(){
-		return Response.noContent().build();
+		Response r;
+		r = Response.created(context.getAbsolutePathBuilder().path("1").build()).build();
+		return r;
 	}
 }
