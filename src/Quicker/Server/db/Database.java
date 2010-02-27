@@ -41,8 +41,8 @@ public class Database{
 		session.commit();
 	}
 
-	private Library selectLibraryFromRoot(String lib){
-		return new Library(rootLibrary.getChildLibrary(lib));
+	public Library getRootLibrary(String lib){
+		return rootLibrary.getChildLibrary(lib);
 	}
 
 }

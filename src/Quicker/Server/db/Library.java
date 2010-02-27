@@ -4,10 +4,15 @@ import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.error.xquery.XhiveXQueryException;
 import com.xhive.query.interfaces.XhiveQueryResultIf;
 import java.util.Iterator;
+import javax.ejb.Stateless;
+import org.w3c.dom.Document;
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSParser;
 
 /**
  *
  */
+@Stateless
 public class Library {
 
 	XhiveLibraryIf library;
@@ -16,12 +21,8 @@ public class Library {
 		this.library = library;
 	}
 
-	public XhiveLibraryIf getLibrary(){
-		return library;
-	}
-
-	public XhiveLibraryIf getChildLibrary(String lib){
-		return (XhiveLibraryIf) library.get(lib);
+	public Library getChildLibrary(String lib){
+		return new Library((XhiveLibraryIf) library.get(lib));
 	}
 
 	/**
@@ -47,10 +48,12 @@ public class Library {
 
 	/**
 	 *
-	 * @param path - Path from root library
 	 * @param doc - XML-document
 	 */
-	public void addDocument(String path,String doc){
-
+	public void addDocument(String doc){
+		LSParser builder = library.createLSParser();
+		LSInput i = library.createLSInput();
+		i.setStringData(doc);
+		Document d = builder.parse(i);
 	}
 }
