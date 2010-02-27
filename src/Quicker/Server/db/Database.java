@@ -6,6 +6,7 @@ import com.xhive.core.interfaces.XhiveSessionIf;
 import com.xhive.dom.interfaces.XhiveLibraryChildIf;
 import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.error.XhiveException;
+import com.xhive.error.xquery.XhiveXQueryException;
 import com.xhive.query.interfaces.XhiveQueryResultIf;
 import java.util.Iterator;
 import javax.ejb.Stateless;
@@ -18,7 +19,7 @@ public class Database{
 
 	private XhiveDriverIf driver;
 	private XhiveSessionIf session;
-	private XhiveLibraryIf rootLibrary;
+	public Library rootLibrary;
 
 	public Database (){
 		try{
@@ -36,41 +37,12 @@ public class Database{
 			//Exception
 		}
 		session.begin();
-		rootLibrary = session.getDatabase().getRoot();
+		rootLibrary = new Library(session.getDatabase().getRoot());
 		session.commit();
 	}
 
-	private XhiveLibraryChildIf selectLibraryFromRoot(String lib){
-		return rootLibrary.get(lib);
-	}
-
-	/**
-	 * 
-	 * @param path - Path from root library
-	 * @param doc - XML-document
-	 */
-	public void addDocument(String path,String doc){
-		
-	}
-
-	/**
-	 * 
-	 * @param query
-	 * @return XML-document
-	 */
-	public Iterator executeXQueryQuery(String query){
-		Iterator result = rootLibrary.executeXQuery(query);
-		return result;
-	}
-
-	/**
-	 *
-	 * @param query
-	 * @return
-	 */
-	public XhiveQueryResultIf executeXPathQuery(String query){
-		XhiveQueryResultIf result = rootLibrary.executeXPathQuery(query);
-		return result;
+	private Library selectLibraryFromRoot(String lib){
+		return new Library(rootLibrary.getChildLibrary(lib));
 	}
 
 }
