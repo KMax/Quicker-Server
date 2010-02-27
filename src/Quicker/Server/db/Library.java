@@ -4,7 +4,7 @@ import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.error.xquery.XhiveXQueryException;
 import com.xhive.query.interfaces.XhiveQueryResultIf;
 import java.util.Iterator;
-import javax.ejb.Stateless;
+import javax.ejb.Stateful;
 import org.w3c.dom.Document;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSParser;
@@ -12,7 +12,7 @@ import org.w3c.dom.ls.LSParser;
 /**
  *
  */
-@Stateless
+@Stateful
 public class Library {
 
 	XhiveLibraryIf library;
@@ -54,6 +54,7 @@ public class Library {
 		LSParser builder = library.createLSParser();
 		LSInput i = library.createLSInput();
 		i.setStringData(doc);
+		//Обработать DOMException, LSException
 		Document d = builder.parse(i);
 	}
 }
