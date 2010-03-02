@@ -3,12 +3,7 @@ package Quicker.Server.db;
 import com.xhive.XhiveDriverFactory;
 import com.xhive.core.interfaces.XhiveDriverIf;
 import com.xhive.core.interfaces.XhiveSessionIf;
-import com.xhive.dom.interfaces.XhiveLibraryChildIf;
-import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.error.XhiveException;
-import com.xhive.error.xquery.XhiveXQueryException;
-import com.xhive.query.interfaces.XhiveQueryResultIf;
-import java.util.Iterator;
 import javax.ejb.Stateless;
 
 /**

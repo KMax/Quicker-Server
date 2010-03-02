@@ -14,4 +14,12 @@ public class NoteDatabase {
 	public NoteDatabase(){}
 
 	
+	public String getNoteById(String id){
+		return id;
+	}
+
+	public String getNoteList(String user){
+		return "<notes/>";
+	}
+	
 }

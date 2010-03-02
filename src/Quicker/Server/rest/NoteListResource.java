@@ -1,10 +1,13 @@
 package Quicker.Server.rest;
 
+import Quicker.Server.db.NoteDatabase;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
 /**
@@ -17,17 +20,21 @@ public class NoteListResource {
     @Context
     private UriInfo context;
 
+	@EJB
+	private NoteDatabase ndb;
+
     /** Creates a new instance of NoteListResource */
     public NoteListResource() {
     }
 
 	/**
 	 * Retrieves representation of an instance of rest.NoteListResource
+	 * @param user
 	 * @return an instance of java.lang.String
 	 */
 	@GET
     @Produces("application/xml")
-	public String getNoteList() {
-		return "<notes/>";
+	public String getNoteList(@PathParam("{user}") String user) {
+		return ndb.getNoteList(user);
 	}
 }
