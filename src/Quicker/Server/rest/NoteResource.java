@@ -1,6 +1,8 @@
 package Quicker.Server.rest;
 
+import Quicker.Server.db.NoteDatabase;
 import java.net.URI;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -24,21 +26,24 @@ public class NoteResource {
     @Context
     private UriInfo context;
 
+	@EJB
+	private NoteDatabase ndb;
+
     /** Creates a new instance of NoteResource */
     public NoteResource() {
     }
 
 	/**
 	 * Посылает заметку по заданному id
-	 * @param id
+	 * @param user - User login
+	 * @param id - Id of note
 	 * @return an instance of java.lang.String
 	 */
 	@Path("/{id}")
 	@GET
-    @Produces("application/xml")
-	public String getNote(@PathParam("id") int id) {
-		return "<note id='"+id+"' ><title>Пробная заметка</title>" +
-				"<text>блая блая блая блая блая блая</text></note>";
+    @Produces("application/atom+xml")
+	public String getNote(@PathParam("user") String user, @PathParam("id") int id) {
+		return ndb.getNoteById(user, id);
 	}
 
 	/**

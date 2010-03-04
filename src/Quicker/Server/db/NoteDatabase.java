@@ -17,8 +17,18 @@ public class NoteDatabase {
 	public NoteDatabase(){}
 
 	
-	public String getNoteById(String id){
-		return id;
+	public String getNoteById(String user, int id){
+		String query = "doc('note')/*[id="+id+"]";
+		return executeXQuery(user, query);
+	}
+
+	private String executeXQuery(String user, String query) {
+		XhiveSessionIf session = db.getDriver().createSession();
+		session.connect(Database.userName, Database.userPass, Database.dbName);
+		session.setReadOnlyMode(true);
+		session.begin();
+		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase().getRoot().get(user).executeXQuery(query);
+		return i.next().toString();
 	}
 
 	/**
@@ -39,13 +49,7 @@ public class NoteDatabase {
 				"</entry>" +
 				"} " +
 				"</feed>";
-		XhiveSessionIf session = db.getDriver().createSession();
-		session.connect(Database.userName, Database.userPass, Database.dbName);
-		session.setReadOnlyMode(true);
-		session.begin();
-		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase().getRoot().get(user)
-				.executeXQuery(query);
-		return i.next().toString();
+		return executeXQuery(user, query);
 	}
 	
 }
