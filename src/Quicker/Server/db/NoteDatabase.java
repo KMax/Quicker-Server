@@ -29,9 +29,15 @@ public class NoteDatabase {
 	public String getNoteList(String user){
 		String query = 
 				"<feed xmlns='http://www.w3.org/2005/Atom'> " +
-				"{for $i in doc('note') " +
+				"{for $i in doc('note')/* " +
 				"return " +
-				"$i} " +
+				"<entry>" +
+				"{" +
+				"$i/*[1]," +
+				"$i/*[2]" +
+				"}" +
+				"</entry>" +
+				"} " +
 				"</feed>";
 		XhiveSessionIf session = db.getDriver().createSession();
 		session.connect(Database.userName, Database.userPass, Database.dbName);
