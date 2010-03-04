@@ -2,7 +2,6 @@ package Quicker.Server.db;
 
 import com.xhive.XhiveDriverFactory;
 import com.xhive.core.interfaces.XhiveDriverIf;
-import com.xhive.core.interfaces.XhiveSessionIf;
 import com.xhive.error.XhiveException;
 import javax.ejb.Stateless;
 
@@ -13,8 +12,21 @@ import javax.ejb.Stateless;
 public class Database{
 
 	private XhiveDriverIf driver;
-	private XhiveSessionIf session;
-	public Library rootLibrary;
+	
+	/**
+	 * User login for connection to database
+	 */
+	public static String userName = "Administrator";
+
+	/**
+	 * User password for connection to database
+	 */
+	public static String userPass = "123";
+	
+	/**
+	 * Name of database
+	 */
+	public static String dbName = "Quicker";
 
 	public Database (){
 		try{
@@ -25,19 +37,9 @@ public class Database{
 		if(!driver.isInitialized()){
 			driver.init();
 		}
-		session = driver.createSession();
-		session.connect("Administrator", "123", "Quicker");
-		if(!session.isConnected()){
-			//FIXME
-			//Exception
-		}
-		session.begin();
-		rootLibrary = new Library(session.getDatabase().getRoot());
-		session.commit();
 	}
 
-	public Library getRootLibrary(String lib){
-		return rootLibrary.getChildLibrary(lib);
+	public XhiveDriverIf getDriver(){
+		return driver;
 	}
-
 }

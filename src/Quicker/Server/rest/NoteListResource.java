@@ -2,6 +2,8 @@ package Quicker.Server.rest;
 
 import Quicker.Server.db.NoteDatabase;
 import javax.ejb.EJB;
+import javax.ejb.Local;
+import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -34,7 +36,8 @@ public class NoteListResource {
 	 */
 	@GET
     @Produces("application/xml")
-	public String getNoteList(@PathParam("{user}") String user) {
+	public String getNoteList(@PathParam("user") String user) {
+		//FIXME Авторизация
 		return ndb.getNoteList(user);
 	}
 }
