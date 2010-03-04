@@ -35,7 +35,7 @@ public class NoteListResource {
 	 * @return an instance of java.lang.String
 	 */
 	@GET
-    @Produces("application/xml")
+    @Produces("application/atom+xml")
 	public String getNoteList(@PathParam("user") String user) {
 		//FIXME Авторизация
 		return ndb.getNoteList(user);

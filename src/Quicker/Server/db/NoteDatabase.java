@@ -21,13 +21,24 @@ public class NoteDatabase {
 		return id;
 	}
 
+	/**
+	 * 
+	 * @param user - User login
+	 * @return java.lang.String contains a xml-document
+	 */
 	public String getNoteList(String user){
+		String query = 
+				"<feed xmlns='http://www.w3.org/2005/Atom'> " +
+				"{for $i in doc('note') " +
+				"return " +
+				"$i} " +
+				"</feed>";
 		XhiveSessionIf session = db.getDriver().createSession();
 		session.connect(Database.userName, Database.userPass, Database.dbName);
 		session.setReadOnlyMode(true);
 		session.begin();
 		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase().getRoot().get(user)
-				.executeXQuery("doc('note')/entry");
+				.executeXQuery(query);
 		return i.next().toString();
 	}
 	
