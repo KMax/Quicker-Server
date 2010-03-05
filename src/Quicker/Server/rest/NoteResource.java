@@ -43,18 +43,22 @@ public class NoteResource {
 	@GET
     @Produces("application/atom+xml")
 	public String getNote(@PathParam("user") String user, @PathParam("id") int id) {
+		//FIXME Authentication...
 		return ndb.getNoteById(user, id);
 	}
 
 	/**
 	 * Delete a note by id.
+	 * @param user 
 	 * @param id
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@Path("/{id}")
 	@DELETE
-	public Response deleteNote(@PathParam("id") int id){
-		return Response.noContent().build();
+	public Response deleteNote(@PathParam("user") String user, @PathParam("id") int id){
+		//FIXME Authentication...
+		ndb.deleteNote(user, id);
+		return Response.ok().build();
 	}
 
 	/**
@@ -65,6 +69,7 @@ public class NoteResource {
 	@PUT
 	@Consumes("application/xml")
 	public Response updateNote(){
+		//FIXME Authentication...
 		return Response.noContent().build();
 	}
 
@@ -75,6 +80,7 @@ public class NoteResource {
 	@POST
 	@Consumes("application/xml")
 	public Response addNote(){
+		//FIXME Authentication...
 		Response r;
 		r = Response.created(context.getAbsolutePathBuilder().path("1").build()).build();
 		return r;

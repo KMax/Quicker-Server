@@ -18,17 +18,35 @@ public class NoteDatabase {
 
 	
 	public String getNoteById(String user, int id){
-		String query = "doc('note')/*[id="+id+"]";
+		String query = "doc('note')/feed/entry[id="+id+"]";
 		return executeXQuery(user, query);
 	}
 
 	private String executeXQuery(String user, String query) {
+		IterableIterator<? extends XhiveXQueryValueIf> i = null;
 		XhiveSessionIf session = db.getDriver().createSession();
 		session.connect(Database.userName, Database.userPass, Database.dbName);
 		session.setReadOnlyMode(true);
+		try{
 		session.begin();
-		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase().getRoot().get(user).executeXQuery(query);
+		i = session.getDatabase()
+				.getRoot().get(user).executeXQuery(query);
+		//session.commit();
+		}catch(Exception ex){
+			//session.rollback();
+			ex.printStackTrace();
+		}
 		return i.next().toString();
+	}
+
+	private void executeXQueryUpdate(String user, String query){
+		XhiveSessionIf session = db.getDriver().createSession();
+		session.connect(Database.userName, Database.userPass, Database.dbName);
+		session.setReadOnlyMode(false);
+		session.begin();
+		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase()
+				.getRoot().get(user).executeXQuery(query);
+		session.commit();
 	}
 
 	/**
@@ -38,18 +56,28 @@ public class NoteDatabase {
 	 */
 	public String getNoteList(String user){
 		String query = 
-				"<feed xmlns='http://www.w3.org/2005/Atom'> " +
-				"{for $i in doc('note')/* " +
+				"<feed> " +
+				"{for $i in doc('note')/feed/entry " +
 				"return " +
 				"<entry>" +
 				"{" +
-				"$i/*[1]," +
-				"$i/*[2]" +
+				"$i/id," +
+				"$i/title" +
 				"}" +
 				"</entry>" +
 				"} " +
 				"</feed>";
 		return executeXQuery(user, query);
+	}
+
+	/**
+	 * 
+	 * @param user
+	 * @param id
+	 */
+	public void deleteNote(String user, int id){
+		String query = "xhive:remove(doc('note')/feed/entry[id="+id+"])";
+		executeXQueryUpdate(user, query);
 	}
 	
 }
