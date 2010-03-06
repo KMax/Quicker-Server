@@ -14,6 +14,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -42,9 +43,10 @@ public class NoteResource {
 	@Path("/{id}")
 	@GET
     @Produces("application/atom+xml")
-	public String getNote(@PathParam("user") String user, @PathParam("id") int id) {
+	public Response getNote(@PathParam("user") String user, @PathParam("id") int id) {
 		//FIXME Authentication...
-		return ndb.getNoteById(user, id);
+		Response r = Response.ok(ndb.getNoteById(user, id), MediaType.APPLICATION_ATOM_XML).build();
+		return r;
 	}
 
 	/**
