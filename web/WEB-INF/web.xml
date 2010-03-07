@@ -14,4 +14,16 @@
             30
         </session-timeout>
     </session-config>
-</web-app>
+    <security-constraint>
+        <display-name/>
+        <web-resource-collection>
+            <web-resource-name>All resourses</web-resource-name>
+            <description/>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <description/>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+    </web-app>

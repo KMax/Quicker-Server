@@ -1,16 +1,22 @@
 package Quicker.Server.rest;
 
+import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
+import Quicker.Server.db.UserDatabase;
+import com.sun.jersey.api.core.HttpRequestContext;
+import javax.annotation.security.PermitAll;
 import javax.ejb.EJB;
-import javax.ejb.Local;
-import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 /**
  * REST Web Service
@@ -22,8 +28,15 @@ public class NoteListResource {
     @Context
     private UriInfo context;
 
+	@Context
+	private HttpHeaders hh;
+
 	@EJB
-	private NoteDatabase ndb;
+	private NoteDatabase notedb;
+
+	@EJB
+	private UserAuthorization userAuth;
+
 
     /** Creates a new instance of NoteListResource */
     public NoteListResource() {
@@ -35,9 +48,11 @@ public class NoteListResource {
 	 * @return an instance of java.lang.String
 	 */
 	@GET
-    @Produces("application/atom+xml")
-	public String getNoteList(@PathParam("user") String user) {
-		//FIXME Авторизация
-		return ndb.getNoteList(user);
+    @Produces("application/xml")
+	public Response getNoteList(@PathParam("user") String user) {
+		userAuth.Auth(hh);
+		String s = notedb.getNoteList(user);
+		Response r = Response.ok(s).build();
+		return r;
 	}
 }
