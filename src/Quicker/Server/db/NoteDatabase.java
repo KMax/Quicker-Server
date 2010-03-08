@@ -14,7 +14,8 @@ public class NoteDatabase extends Database{
 	}
 
 	
-	public String getNoteById(String user, int id){
+	public String getNoteById(String user, int id)
+			throws NullPointerException,XhiveXQueryException{
 		String query = "doc('note')/feed/entry[id="+id+"]";
 		return executeXQuery(user, query);
 	}
