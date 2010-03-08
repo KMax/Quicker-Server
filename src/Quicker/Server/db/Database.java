@@ -19,17 +19,17 @@ public class Database{
 	/**
 	 * User login for connection to database
 	 */
-	public static String userName = "Administrator";
+	private static String userName = "Administrator";
 
 	/**
 	 * User password for connection to database
 	 */
-	public static String userPass = "123";
+	private static String userPass = "123";
 	
 	/**
 	 * Name of database
 	 */
-	public static String dbName = "Quicker";
+	private static String dbName = "Quicker";
 
 	public Database (){
 		try{
