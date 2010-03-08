@@ -4,6 +4,7 @@ import com.xhive.XhiveDriverFactory;
 import com.xhive.core.interfaces.XhiveDriverIf;
 import com.xhive.core.interfaces.XhiveSessionIf;
 import com.xhive.error.XhiveException;
+import com.xhive.error.xquery.XhiveXQueryException;
 import com.xhive.query.interfaces.XhiveXQueryValueIf;
 import com.xhive.util.interfaces.IterableIterator;
 import javax.ejb.Stateless;
@@ -42,28 +43,25 @@ public class Database{
 		}
 	}
 
-	protected String executeXQuery(String user, String query) {
+	protected String executeXQuery(String user, String query) 
+			throws NullPointerException,XhiveXQueryException{
 		IterableIterator<? extends XhiveXQueryValueIf> i = null;
 		XhiveSessionIf session = driver.createSession();
 		session.connect(Database.userName, Database.userPass, Database.dbName);
 		session.setReadOnlyMode(true);
-		try {
-			session.begin();
-			i = session.getDatabase().getRoot().get(user).executeXQuery(query);
-			//session.commit();
-		} catch (Exception ex) {
-			//session.rollback();
-			ex.printStackTrace();
-		}
+		session.begin();
+		i = session.getDatabase().getRoot().get(user).executeXQuery(query);
 		return i.next().toString();
 	}
 
-	protected void executeXQueryUpdate(String user, String query) {
+	protected void executeXQueryUpdate(String user, String query) 
+			throws NullPointerException,XhiveXQueryException{
 		XhiveSessionIf session = driver.createSession();
 		session.connect(Database.userName, Database.userPass, Database.dbName);
 		session.setReadOnlyMode(false);
 		session.begin();
-		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase().getRoot().get(user).executeXQuery(query);
+		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase()
+				.getRoot().get(user).executeXQuery(query);
 		session.commit();
 	}
 }
