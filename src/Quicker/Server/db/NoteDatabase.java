@@ -1,10 +1,6 @@
 package Quicker.Server.db;
 
-import Quicker.Server.db.Database;
-import com.xhive.core.interfaces.XhiveSessionIf;
-import com.xhive.query.interfaces.XhiveXQueryValueIf;
-import com.xhive.util.interfaces.IterableIterator;
-import javax.ejb.EJB;
+import com.xhive.error.xquery.XhiveXQueryException;
 import javax.ejb.Stateless;
 
 /**
@@ -27,8 +23,11 @@ public class NoteDatabase extends Database{
 	 * 
 	 * @param user - User login
 	 * @return java.lang.String contains a xml-document
+	 * @throws NullPointerException
+	 * @throws XhiveXQueryException 
 	 */
-	public String getNoteList(String user){
+	public String getNoteList(String user)
+			throws NullPointerException,XhiveXQueryException{
 		String query = 
 				"<feed> " +
 				"{for $i in doc('note')/feed/entry " +
@@ -48,8 +47,11 @@ public class NoteDatabase extends Database{
 	 * 
 	 * @param user
 	 * @param id
+	 * @throws NullPointerException
+	 * @throws XhiveXQueryException
 	 */
-	public void deleteNote(String user, int id){
+	public void deleteNote(String user, int id)
+			throws NullPointerException,XhiveXQueryException{
 		String query = "xhive:remove(doc('note')/feed/entry[id="+id+"])";
 		executeXQueryUpdate(user, query);
 	}
