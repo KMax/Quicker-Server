@@ -42,7 +42,15 @@ public class Database{
 			driver.init();
 		}
 	}
-
+	
+	/**
+	 *
+	 * @param user
+	 * @param query
+	 * @return
+	 * @throws NullPointerException
+	 * @throws XhiveXQueryException
+	 */
 	protected String executeXQuery(String user, String query) 
 			throws NullPointerException,XhiveXQueryException{
 		IterableIterator<? extends XhiveXQueryValueIf> i = null;
@@ -54,6 +62,13 @@ public class Database{
 		return i.next().toString();
 	}
 
+	/**
+	 *
+	 * @param user
+	 * @param query
+	 * @throws NullPointerException
+	 * @throws XhiveXQueryException
+	 */
 	protected void executeXQueryUpdate(String user, String query) 
 			throws NullPointerException,XhiveXQueryException{
 		XhiveSessionIf session = driver.createSession();
