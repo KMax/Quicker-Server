@@ -1,7 +1,7 @@
 package Quicker.Server.rest;
 
+import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
-import java.net.URI;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
@@ -14,11 +14,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 /**
- * REST Веб-сервис
+ * REST Web-Service
  */
 
 @Path("/{user}/note/")
@@ -27,8 +28,14 @@ public class NoteResource {
     @Context
     private UriInfo context;
 
+	@Context
+	private HttpHeaders hh;
+
 	@EJB
 	private NoteDatabase ndb;
+
+	@EJB
+	private UserAuthorization userAuth;
 
     /** Creates a new instance of NoteResource */
     public NoteResource() {
@@ -44,8 +51,13 @@ public class NoteResource {
 	@GET
     @Produces("application/atom+xml")
 	public Response getNote(@PathParam("user") String user, @PathParam("id") int id) {
-		//FIXME Authentication...
-		Response r = Response.ok(ndb.getNoteById(user, id), MediaType.APPLICATION_ATOM_XML).build();
+		Response r =null;
+		try{
+			userAuth.Auth(hh, user);
+			r = Response.ok(ndb.getNoteById(user, id)).build();
+		}catch(WebApplicationException wae){
+			r = wae.getResponse();
+		}
 		return r;
 	}
 
@@ -58,9 +70,14 @@ public class NoteResource {
 	@Path("/{id}")
 	@DELETE
 	public Response deleteNote(@PathParam("user") String user, @PathParam("id") int id){
-		//FIXME Authentication...
-		ndb.deleteNote(user, id);
-		return Response.ok().build();
+		Response r =null;
+		try{
+			userAuth.Auth(hh, user);
+			ndb.deleteNote(user, id);
+		}catch(WebApplicationException wae){
+			r = wae.getResponse();
+		}
+		return r;
 	}
 
 	/**
