@@ -2,6 +2,13 @@ package Quicker.Server.rest;
 
 import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
+import com.sun.jersey.api.core.HttpRequestContext;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.lang.Class;
+import java.lang.String;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
@@ -16,7 +23,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.xml.ws.http.HTTPBinding;
 
 /**
  * REST Web-Service
@@ -74,6 +83,7 @@ public class NoteResource {
 		try{
 			userAuth.Auth(hh, user);
 			ndb.deleteNote(user, id);
+			r = Response.ok().build();
 		}catch(WebApplicationException wae){
 			r = wae.getResponse();
 		}
@@ -82,26 +92,46 @@ public class NoteResource {
 
 	/**
 	 * Update a note by id.
+	 * @param user 
+	 * @param id
+	 * @param hrc
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@Path("/{id}")
 	@PUT
-	@Consumes("application/xml")
-	public Response updateNote(){
-		//FIXME Authentication...
-		return Response.noContent().build();
+	@Consumes("application/atom+xml;charset=ISO-8859-1")
+	public Response updateNote(@PathParam("user") String user,
+			@PathParam("id") int id, byte[] data){
+		Response r = null;
+		try{
+			userAuth.Auth(hh, user);
+			ndb.addNote(user,id,new String(data));
+			r = Response.ok().build();
+		}catch(WebApplicationException wae){
+			r = wae.getResponse();
+		}
+		return r;
 	}
 
 	/**
 	 * Add new note.
+	 * @param user
+	 * @param id 
+	 * @param hrc
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@POST
-	@Consumes("application/xml")
-	public Response addNote(){
-		//FIXME Authentication...
-		Response r;
-		r = Response.created(context.getAbsolutePathBuilder().path("1").build()).build();
+	@Consumes("application/atom+xml;charset=ISO-8859-1")
+	public Response addNote(@PathParam("user") String user,
+			@PathParam("id") int id, byte[] data){
+		Response r = null;
+		try{
+			userAuth.Auth(hh, user);
+			String tmp = ndb.addNote(user,id,new String(data));
+			r = Response.ok(tmp).build();
+		}catch(WebApplicationException wae){
+			r = wae.getResponse();
+		}
 		return r;
 	}
 }

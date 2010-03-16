@@ -15,7 +15,7 @@ import javax.ejb.Stateless;
 @Stateless
 public class Database{
 
-	private XhiveDriverIf driver;
+	protected XhiveDriverIf driver;
 	
 	/**
 	 * User login for connection to database
@@ -74,9 +74,13 @@ public class Database{
 		XhiveSessionIf session = driver.createSession();
 		session.connect(Database.userName, Database.userPass, Database.dbName);
 		session.setReadOnlyMode(false);
+		try{
 		session.begin();
 		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase()
 				.getRoot().get(user).executeXQuery(query);
 		session.commit();
+		}catch(Exception ex){
+			
+		}
 	}
 }
