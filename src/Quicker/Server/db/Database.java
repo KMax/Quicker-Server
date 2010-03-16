@@ -51,7 +51,7 @@ public class Database{
 	 * @throws NullPointerException
 	 * @throws XhiveXQueryException
 	 */
-	protected String executeXQuery(String user, String query) 
+	protected XhiveXQueryValueIf executeXQuery(String user, String query)
 			throws NullPointerException,XhiveXQueryException{
 		IterableIterator<? extends XhiveXQueryValueIf> i = null;
 		XhiveSessionIf session = driver.createSession();
@@ -59,7 +59,7 @@ public class Database{
 		session.setReadOnlyMode(true);
 		session.begin();
 		i = session.getDatabase().getRoot().get(user).executeXQuery(query);
-		return i.next().toString();
+		return i.next();
 	}
 
 	/**

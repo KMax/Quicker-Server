@@ -17,7 +17,7 @@ public class NoteDatabase extends Database{
 	public String getNoteById(String user, int id)
 			throws NullPointerException,XhiveXQueryException{
 		String query = "doc('note')/feed/entry[id="+id+"]";
-		return executeXQuery(user, query);
+		return executeXQuery(user, query).asString();
 	}
 
 	/**
@@ -41,7 +41,7 @@ public class NoteDatabase extends Database{
 				"</entry>" +
 				"} " +
 				"</feed>";
-		return executeXQuery(user, query);
+		return executeXQuery(user, query).asString();
 	}
 
 	/**
@@ -59,22 +59,24 @@ public class NoteDatabase extends Database{
 
 	/**
 	 *
-	 *
 	 * @param user
-	 * @param id 
 	 * @param doc
 	 * @return
 	 */
-	public String addNote(String user, int id, String doc){
-		String queryID = "max(doc('note')/feed/entry/id)+1";
-		String newID = executeXQuery(user, queryID);
-
+	public String addNote(String user, String doc){
+		int newId = generateID(user);
+		//FIXME Изменить xml-документ
 		String query = "let $new-entry :="+doc+
 				"let $feed := doc('note')/feed " +
 				"return " +
 				"xhive:insert-into($feed, $new-entry) ";
 		executeXQueryUpdate(user, query);
-		return getNoteById(user, Integer.parseInt(newID));
+		return getNoteById(user, newId);
+	}
+
+	private int generateID(String user){
+		String query = "max(doc('note')/feed/entry/id)+1";
+		return executeXQuery(user, query).asInt();
 	}
 	
 }

@@ -94,7 +94,7 @@ public class NoteResource {
 	 * Update a note by id.
 	 * @param user 
 	 * @param id
-	 * @param hrc
+	 * @param data 
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@Path("/{id}")
@@ -105,7 +105,6 @@ public class NoteResource {
 		Response r = null;
 		try{
 			userAuth.Auth(hh, user);
-			ndb.addNote(user,id,new String(data));
 			r = Response.ok().build();
 		}catch(WebApplicationException wae){
 			r = wae.getResponse();
@@ -117,7 +116,7 @@ public class NoteResource {
 	 * Add new note.
 	 * @param user
 	 * @param id 
-	 * @param hrc
+	 * @param data
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@POST
@@ -127,7 +126,7 @@ public class NoteResource {
 		Response r = null;
 		try{
 			userAuth.Auth(hh, user);
-			String tmp = ndb.addNote(user,id,new String(data));
+			String tmp = ndb.addNote(user,new String(data));
 			r = Response.ok(tmp).build();
 		}catch(WebApplicationException wae){
 			r = wae.getResponse();
