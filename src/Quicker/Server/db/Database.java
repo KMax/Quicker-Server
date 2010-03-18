@@ -20,17 +20,17 @@ public class Database{
 	/**
 	 * User login for connection to database
 	 */
-	private static String userName = "Administrator";
+	protected static String userName = "Administrator";
 
 	/**
 	 * User password for connection to database
 	 */
-	private static String userPass = "123";
+	protected static String userPass = "123";
 	
 	/**
 	 * Name of database
 	 */
-	private static String dbName = "Quicker";
+	protected static String dbName = "Quicker";
 
 	public Database (){
 		try{
@@ -75,12 +75,12 @@ public class Database{
 		session.connect(Database.userName, Database.userPass, Database.dbName);
 		session.setReadOnlyMode(false);
 		try{
-		session.begin();
-		IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase()
-				.getRoot().get(user).executeXQuery(query);
-		session.commit();
+			session.begin();
+			IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase()
+					.getRoot().get(user).executeXQuery(query);
+			session.commit();
 		}catch(Exception ex){
-			
+			session.rollback();
 		}
 	}
 }
