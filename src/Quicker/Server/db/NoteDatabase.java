@@ -85,7 +85,9 @@ public class NoteDatabase extends Database{
 		try {
 			parser.parse(new InputSource(new ByteArrayInputStream(doc.getBytes())));
 		} catch (SAXException ex) {
+			ex.printStackTrace();
 		} catch (IOException ex) {
+			ex.printStackTrace();
 		}
 		Document document = parser.getDocument();
 		document.getElementsByTagName("id").item(0)
@@ -96,22 +98,25 @@ public class NoteDatabase extends Database{
 			impl = (DOMImplementationLS) DOMImplementationRegistry
 					.newInstance().getDOMImplementation("LS");
 		} catch (ClassNotFoundException ex) {
+			ex.printStackTrace();
 		} catch (InstantiationException ex) {
+			ex.printStackTrace();
 		} catch (IllegalAccessException ex) {
+			ex.printStackTrace();
 		} catch (ClassCastException ex) {
+			ex.printStackTrace();
 		}
 		LSSerializer serializer = impl.createLSSerializer();
 		serializer.getDomConfig().setParameter("format-pretty-print", Boolean.TRUE);
 		serializer.getDomConfig().setParameter("xml-declaration", Boolean.FALSE);
 		String output = serializer.writeToString(document);
-		System.out.println("Destination:\n"+output);
+
 
 		String query = "let $new-entry :="+output+
 				"let $feed := doc('note')/feed " +
 				"return " +
 				"xhive:insert-into($feed, $new-entry) ";
 		executeXQueryUpdate(user, query);
-		System.out.println("Query done.");
 		return getNoteById(user, newId);
 	}
 
