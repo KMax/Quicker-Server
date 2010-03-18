@@ -92,10 +92,11 @@ public class NoteResource {
 	@PUT
 	@Consumes("application/xml")
 	public Response updateNote(@PathParam("user") String user,
-			@PathParam("id") int id, byte[] data){
+			@PathParam("id") int id, String data){
 		Response r = null;
 		try{
 			userAuth.Auth(hh, user);
+			ndb.changeNote(user, id, data);
 			r = Response.ok().build();
 		}catch(WebApplicationException wae){
 			r = wae.getResponse();
@@ -107,18 +108,18 @@ public class NoteResource {
 	 * Add new note.
 	 * @param user
 	 * @param id 
-	 * @param h 
+	 * @param data
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@POST
 	@Consumes("application/xml")
 	public Response addNote(@PathParam("user") String user,
-			@PathParam("id") int id, String h){
+			@PathParam("id") int id, String data){
 		Response r = null;
 		try{
 			userAuth.Auth(hh, user);
 			String tmp = null;
-			tmp = ndb.addNote(user, h);
+			tmp = ndb.addNote(user, data);
 			r = Response.ok(tmp).build();
 		}catch(WebApplicationException wae){
 			r = wae.getResponse();

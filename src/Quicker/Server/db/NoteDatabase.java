@@ -122,10 +122,12 @@ public class NoteDatabase extends Database{
 
 
 	public void changeNote(String user, int id, String doc){
-		String deleteQuery = "";
-		executeXQueryUpdate(user, deleteQuery);
-		String addQuery = "";
-		executeXQueryUpdate(user, addQuery);
+		deleteNote(user, id);
+		String query = "let $new-entry :="+doc+
+				"let $feed := doc('note')/feed " +
+				"return " +
+				"xhive:insert-into($feed, $new-entry) ";
+		executeXQueryUpdate(user, query);
 	}
 
 	private int generateID(String user){
