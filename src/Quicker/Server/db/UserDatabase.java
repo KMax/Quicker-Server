@@ -18,6 +18,6 @@ public class UserDatabase extends Database{
 	public String getCode(String user)
 			throws NullPointerException,XhiveXQueryException{
 		String query = "string(/info/user/code)";
-		return executeXQuery(user, query).asString();
+		return executeXQuery(user, query);
 	}
 }

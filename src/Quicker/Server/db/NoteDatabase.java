@@ -33,7 +33,7 @@ public class NoteDatabase extends Database{
 	public String getNoteById(String user, int id)
 			throws NullPointerException,XhiveXQueryException{
 		String query = "doc('note')/feed/entry[id="+id+"]";
-		return executeXQuery(user, query).asNode().toXml();
+		return executeXQuery(user, query);
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class NoteDatabase extends Database{
 				"</entry>" +
 				"} " +
 				"</feed>";
-		return executeXQuery(user, query).asNode().toXml();
+		return executeXQuery(user, query);
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class NoteDatabase extends Database{
 
 	private int generateID(String user){
 		String query = "max(doc('note')/feed/entry/id)+1";
-		return executeXQuery(user, query).asInt();
+		return Integer.parseInt(executeXQuery(user, query));
 	}
 	
 }

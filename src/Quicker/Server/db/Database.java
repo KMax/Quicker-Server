@@ -55,19 +55,21 @@ public class Database{
 	 * @throws NullPointerException
 	 * @throws XhiveXQueryException
 	 */
-	protected XhiveXQueryValueIf executeXQuery(String user, String query)
+	protected String executeXQuery(String user, String query)
 			throws NullPointerException,XhiveXQueryException{
 		XhiveSessionIf session = this.getSession();
-		session.setReadOnlyMode(true);
 		session.join();
+		session.setReadOnlyMode(true);
 		session.begin();
 		IterableIterator<? extends XhiveXQueryValueIf> i = session
 				.getDatabase().getRoot().get(user).executeXQuery(query);
+		String result = i.next().toString();
+		session.commit();
 		if(session.isJoined()){
 			session.leave();
 		}
 		this.returnSession(session);
-		return i.next();
+		return result;
 	}
 
 	/**
@@ -80,9 +82,9 @@ public class Database{
 	protected void executeXQueryUpdate(String user, String query) 
 			throws NullPointerException,XhiveXQueryException{
 		XhiveSessionIf session = this.getSession();
-		session.setReadOnlyMode(false);
 		try{
 			session.join();
+			session.setReadOnlyMode(false);
 			session.begin();
 			IterableIterator<? extends XhiveXQueryValueIf> i = session
 					.getDatabase().getRoot().get(user).executeXQuery(query);
