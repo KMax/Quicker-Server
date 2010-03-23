@@ -57,47 +57,68 @@ public class Database{
 	 */
 	protected XhiveXQueryValueIf executeXQuery(String user, String query)
 			throws NullPointerException,XhiveXQueryException{
-		IterableIterator<? extends XhiveXQueryValueIf> i = null;
-		XhiveSessionIf session = driver.createSession();
-		session.connect(Database.userName, Database.userPass, Database.dbName);
+		XhiveSessionIf session = this.getSession();
 		session.setReadOnlyMode(true);
+		session.join();
 		session.begin();
-		i = session.getDatabase().getRoot().get(user).executeXQuery(query);
+		IterableIterator<? extends XhiveXQueryValueIf> i = session
+				.getDatabase().getRoot().get(user).executeXQuery(query);
+		if(session.isJoined()){
+			session.leave();
+		}
+		this.returnSession(session);
 		return i.next();
 	}
 
 	/**
-	 *
-	 * @param user
-	 * @param query
+	 * By calling this method, you execute XQuery Update query.
+	 * @param user java.lang.String
+	 * @param query java.lang.String
 	 * @throws NullPointerException
 	 * @throws XhiveXQueryException
 	 */
 	protected void executeXQueryUpdate(String user, String query) 
 			throws NullPointerException,XhiveXQueryException{
-		XhiveSessionIf session = driver.createSession();
-		session.connect(Database.userName, Database.userPass, Database.dbName);
+		XhiveSessionIf session = this.getSession();
 		session.setReadOnlyMode(false);
 		try{
+			session.join();
 			session.begin();
-			IterableIterator<? extends XhiveXQueryValueIf> i = session.getDatabase()
-					.getRoot().get(user).executeXQuery(query);
+			IterableIterator<? extends XhiveXQueryValueIf> i = session
+					.getDatabase().getRoot().get(user).executeXQuery(query);
 			session.commit();
 		}catch(Exception ex){
+			ex.printStackTrace();
 			session.rollback();
+		}finally{
+			if(session.isJoined()){
+				session.leave();
+			}
+			this.returnSession(session);
 		}
 	}
 
+	/**
+	 * Get session from sessionStack.
+	 * @return com.xhive.core.interfaces.XhiveSessionIf session.
+	 */
 	private XhiveSessionIf getSession(){
 		if(!sessionStack.isEmpty()){
 			return sessionStack.pop();
 		}else{
 			XhiveSessionIf tmpSession = driver.createSession();
 			tmpSession.connect(userName, userPass, dbName);
+			if(tmpSession.isJoined()){
+				tmpSession.leave();
+			}
 			return tmpSession;
 		}
 	}
 
+	/**
+	 * Put back a session in sessionStack.
+	 * @param session com.xhive.core.interfaces.XhiveSessionIf
+	 */
 	private void returnSession(XhiveSessionIf session){
 		sessionStack.push(session);
 	}
