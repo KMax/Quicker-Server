@@ -7,6 +7,7 @@ import com.xhive.error.XhiveException;
 import com.xhive.error.xquery.XhiveXQueryException;
 import com.xhive.query.interfaces.XhiveXQueryValueIf;
 import com.xhive.util.interfaces.IterableIterator;
+import java.util.Stack;
 import javax.ejb.Stateless;
 
 /**
@@ -15,22 +16,24 @@ import javax.ejb.Stateless;
 @Stateless
 public class Database{
 
-	protected XhiveDriverIf driver;
+	private XhiveDriverIf driver;
 	
 	/**
 	 * User login for connection to database
 	 */
-	protected static String userName = "Administrator";
+	private static String userName = "Administrator";
 
 	/**
 	 * User password for connection to database
 	 */
-	protected static String userPass = "123";
+	private static String userPass = "123";
 	
 	/**
 	 * Name of database
 	 */
-	protected static String dbName = "Quicker";
+	private static String dbName = "Quicker";
+
+	private Stack<XhiveSessionIf> sessionStack;
 
 	public Database (){
 		try{
@@ -41,6 +44,7 @@ public class Database{
 		if(!driver.isInitialized()){
 			driver.init();
 		}
+		sessionStack = new Stack<XhiveSessionIf>();
 	}
 	
 	/**
@@ -82,5 +86,19 @@ public class Database{
 		}catch(Exception ex){
 			session.rollback();
 		}
+	}
+
+	private XhiveSessionIf getSession(){
+		if(!sessionStack.isEmpty()){
+			return sessionStack.pop();
+		}else{
+			XhiveSessionIf tmpSession = driver.createSession();
+			tmpSession.connect(userName, userPass, dbName);
+			return tmpSession;
+		}
+	}
+
+	private void returnSession(XhiveSessionIf session){
+		sessionStack.push(session);
 	}
 }
