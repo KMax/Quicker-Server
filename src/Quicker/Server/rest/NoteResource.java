@@ -2,6 +2,7 @@ package Quicker.Server.rest;
 
 import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
+import com.xhive.error.xquery.XhiveXQueryException;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
@@ -14,7 +15,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
@@ -55,8 +55,11 @@ public class NoteResource {
 		try{
 			userAuth.Auth(hh, user);
 			r = Response.ok(ndb.getNoteById(user, id)).build();
-		}catch(WebApplicationException wae){
-			r = wae.getResponse();
+		}catch(SecurityException se){
+			r = Response.status(Response.Status.UNAUTHORIZED)
+					.header("WWW-Authenticate", "Basic").build();
+		}catch(XhiveXQueryException xxe){
+			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return r;
 	}
@@ -75,8 +78,11 @@ public class NoteResource {
 			userAuth.Auth(hh, user);
 			ndb.deleteNote(user, id);
 			r = Response.ok().build();
-		}catch(WebApplicationException wae){
-			r = wae.getResponse();
+		}catch(SecurityException se){
+			r = Response.status(Response.Status.UNAUTHORIZED)
+					.header("WWW-Authenticate", "Basic").build();
+		}catch(XhiveXQueryException xxe){
+			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return r;
 	}
@@ -98,8 +104,11 @@ public class NoteResource {
 			userAuth.Auth(hh, user);
 			ndb.changeNote(user, id, data);
 			r = Response.ok().build();
-		}catch(WebApplicationException wae){
-			r = wae.getResponse();
+		}catch(SecurityException se){
+			r = Response.status(Response.Status.UNAUTHORIZED)
+					.header("WWW-Authenticate", "Basic").build();
+		}catch(XhiveXQueryException xxe){
+			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return r;
 	}
@@ -121,8 +130,11 @@ public class NoteResource {
 			String tmp = null;
 			tmp = ndb.addNote(user, data);
 			r = Response.ok(tmp).build();
-		}catch(WebApplicationException wae){
-			r = wae.getResponse();
+		}catch(SecurityException se){
+			r = Response.status(Response.Status.UNAUTHORIZED)
+					.header("WWW-Authenticate", "Basic").build();
+		}catch(XhiveXQueryException xxe){
+			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return r;
 	}

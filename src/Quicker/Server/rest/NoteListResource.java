@@ -2,6 +2,7 @@ package Quicker.Server.rest;
 
 import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
+import com.xhive.error.xquery.XhiveXQueryException;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.Context;
@@ -10,7 +11,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
@@ -44,15 +44,18 @@ public class NoteListResource {
 	 * @return an instance of java.lang.String
 	 */
 	@GET
-    @Produces("application/atom+xml")
+    @Produces("application/xml")
 	public Response getNoteList(@PathParam("user") String user) {
 		Response r =null;
 		try{
 			userAuth.Auth(hh,user);
 			String s = notedb.getNoteList(user);
 			r = Response.ok(s).build();
-		}catch(WebApplicationException wae){
-			r = wae.getResponse();
+		}catch(SecurityException se){
+			r = Response.status(Response.Status.UNAUTHORIZED)
+					.header("WWW-Authenticate", "Basic").build();
+		}catch(XhiveXQueryException xxe){
+			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return r;
 	}
