@@ -28,24 +28,33 @@
 ****************************************************************************/
 package Quicker.Server.db;
 
-import com.xhive.error.xquery.XhiveXQueryException;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.Map;
 
 /**
- *
+ * 
+ * @author Quicker Team
  */
-@Stateless
-public class UserDatabase extends Database{
+public class NoteBlob implements Serializable{
+	public String name;
+	public String title;
+	public int noteId;
+	public String mimeType;
 
-	@EJB
-	private Database db;
+	private ByteArrayInputStream stream;
 
-	public UserDatabase(){}
+	public NoteBlob(int noteId, ByteArrayInputStream in){
+		this.stream = in;
+	}
 
-	public String getCode(String user)
-			throws NullPointerException,XhiveXQueryException{
-		String query = "string(/info/user/code)";
-		return executeXQuery(user, query);
+	public void setMetadata(Map<String,String> metadata){
+		this.title = metadata.get("title");
+		this.mimeType = metadata.get("mimeType");
+	}
+
+	public InputStream getInputStream(){
+		return stream;
 	}
 }

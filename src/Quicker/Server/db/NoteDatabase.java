@@ -1,20 +1,42 @@
+/***************************************************************************
+*
+*	Copyright 2010 Quicker Team
+*
+*	Quicker Team is:
+*		Kirdeev Andrey (kirduk@yandex.ru)
+* 	Koritniy Ilya (korizzz230@bk.ru)
+* 	Kolchin Maxim	(kolchinmax@gmail.com)
+*/
+/****************************************************************************
+*
+*	This file is part of Quicker.
+*
+*	Quicker is free software: you can redistribute it and/or modify
+*	it under the terms of the GNU Lesser General Public License as published by
+*	the Free Software Foundation, either version 3 of the License, or
+*	(at your option) any later version.
+*
+*	Quicker is distributed in the hope that it will be useful,
+*	but WITHOUT ANY WARRANTY; without even the implied warranty of
+*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+*	GNU Lesser General Public License for more details.
+*
+*	You should have received a copy of the GNU Lesser General Public License
+*	along with Quicker. If not, see <http://www.gnu.org/licenses/>
+
+
+****************************************************************************/
 package Quicker.Server.db;
 
-import com.xhive.core.interfaces.XhiveSessionIf;
-import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.error.xquery.XhiveXQueryException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 import javax.ejb.Stateless;
-import org.apache.xerces.dom.DOMInputImpl;
 import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSInput;
-import org.w3c.dom.ls.LSParser;
 import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -32,8 +54,12 @@ public class NoteDatabase extends Database{
 	
 	public String getNoteById(String user, int id)
 			throws NullPointerException,XhiveXQueryException{
-		String query = "doc('note')/feed/entry[id="+id+"]";
+		String query = "doc('note/"+id+"')/note";
 		return executeXQuery(user, query);
+	}
+
+	public List<NoteBlob> getBLOBsByNoteId(String user, int id){
+		return getAllBLOB(user,"note",id);
 	}
 
 	/**
@@ -46,17 +72,19 @@ public class NoteDatabase extends Database{
 	public String getNoteList(String user)
 			throws NullPointerException,XhiveXQueryException{
 		String query = 
-				"<feed> " +
-				"{for $i in doc('note')/feed/entry " +
+				"<notes> " +
+				"{for $i in doc('note')/note " +
 				"return " +
-				"<entry>" +
+				"<note>" +
 				"{" +
 				"$i/id," +
-				"$i/title" +
+				"$i/title,"+
+				"$i/date,"+
+				"<extractions>{substring($i/content/text/text(),0,10)}</extractions>"+
 				"}" +
-				"</entry>" +
+				"</note>" +
 				"} " +
-				"</feed>";
+				"</notes>";
 		return executeXQuery(user, query);
 	}
 
@@ -69,8 +97,7 @@ public class NoteDatabase extends Database{
 	 */
 	public void deleteNote(String user, int id)
 			throws NullPointerException,XhiveXQueryException{
-		String query = "xhive:remove(doc('note')/feed/entry[id="+id+"])";
-		executeXQueryUpdate(user, query);
+		deleteNode(user, "note/", String.valueOf(id));
 	}
 
 	/**
@@ -80,7 +107,9 @@ public class NoteDatabase extends Database{
 	 * @return created note
 	 */
 	public String addNote(String user, String doc){
+
 		Integer newId = generateID(user);
+		createNode(user, "note",newId.toString());
 		DOMParser parser = new DOMParser();
 		try {
 			parser.parse(new InputSource(new ByteArrayInputStream(doc.getBytes())));
