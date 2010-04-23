@@ -3,7 +3,7 @@
 *	Copyright 2010 Quicker Team
 *
 *	Quicker Team is:
-*		Kirdeev Andrey (kirduk@yandex.ru)
+*	Kirdeev Andrey (kirduk@yandex.ru)
 * 	Koritniy Ilya (korizzz230@bk.ru)
 * 	Kolchin Maxim	(kolchinmax@gmail.com)
 */
@@ -31,6 +31,7 @@ package Quicker.Server.db;
 import com.xhive.error.xquery.XhiveXQueryException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import javax.ejb.Stateless;
 import org.apache.xerces.parsers.DOMParser;
@@ -51,15 +52,46 @@ public class NoteDatabase extends Database{
 		super();
 	}
 
-	
+	/**
+	 * 
+	 * @param user
+	 * @param id
+	 * @return
+	 * @throws NullPointerException
+	 * @throws XhiveXQueryException
+	 */
 	public String getNoteById(String user, int id)
 			throws NullPointerException,XhiveXQueryException{
 		String query = "doc('note/"+id+"')/note";
 		return executeXQuery(user, query);
 	}
 
-	public List<NoteBlob> getBLOBsByNoteId(String user, int id){
-		return getAllBLOB(user,"note",id);
+	/**
+	 *
+	 * @param user
+	 * @param noteId
+	 * @param blobName
+	 * @return
+	 */
+	public ByteArrayInputStream getBLOBStream(String user,int noteId, String blobName){
+		ByteArrayInputStream tmp = null;
+		try {
+			tmp = getBLOBStream(user, "note", noteId, blobName);
+		} catch (IOException ex){
+			ex.printStackTrace();
+		}
+		return tmp;
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @param noteId
+	 * @param blobName
+	 * @return
+	 */
+	public String getBLOBInfo(String user,int noteId,String blobName){
+		return null;
 	}
 
 	/**
@@ -101,67 +133,37 @@ public class NoteDatabase extends Database{
 	}
 
 	/**
+	 * FIXME
 	 * Create a new note in database
 	 * @param user
 	 * @param doc
 	 * @return created note
 	 */
-	public String addNote(String user, String doc){
-
+	public int addNote(String user, String doc){
 		Integer newId = generateID(user);
-		createNode(user, "note",newId.toString());
-		DOMParser parser = new DOMParser();
-		try {
-			parser.parse(new InputSource(new ByteArrayInputStream(doc.getBytes())));
-		} catch (SAXException ex) {
-			ex.printStackTrace();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-		Document document = parser.getDocument();
-		document.getElementsByTagName("id").item(0)
-				.setTextContent(newId.toString());
-		
-		DOMImplementationLS impl = null;
-		try {
-			impl = (DOMImplementationLS) DOMImplementationRegistry
-					.newInstance().getDOMImplementation("LS");
-		} catch (ClassNotFoundException ex) {
-			ex.printStackTrace();
-		} catch (InstantiationException ex) {
-			ex.printStackTrace();
-		} catch (IllegalAccessException ex) {
-			ex.printStackTrace();
-		} catch (ClassCastException ex) {
-			ex.printStackTrace();
-		}
-		LSSerializer serializer = impl.createLSSerializer();
-		serializer.getDomConfig().setParameter("format-pretty-print", Boolean.TRUE);
-		serializer.getDomConfig().setParameter("xml-declaration", Boolean.FALSE);
-		String output = serializer.writeToString(document);
-
-
-		String query = "let $new-entry :="+output+
-				"let $feed := doc('note')/feed " +
-				"return " +
-				"xhive:insert-into($feed, $new-entry) ";
-		executeXQueryUpdate(user, query);
-		return getNoteById(user, newId);
+		createLibrary(user, "note",newId.toString());
+		createDocument(user, "note", newId, doc);
+		return newId;
 	}
 
 
+	/**
+	 * 
+	 * @param user
+	 * @param id
+	 * @param doc
+	 */
 	public void changeNote(String user, int id, String doc){
-		deleteNote(user, id);
-		String query = "let $new-entry :="+doc+
-				"let $feed := doc('note')/feed " +
-				"return " +
-				"xhive:insert-into($feed, $new-entry) ";
-		executeXQueryUpdate(user, query);
+		replaceDocument(user, "note", id, "note", doc);
 	}
 
+	/**
+	 * 
+	 * @param user
+	 * @return
+	 */
 	private int generateID(String user){
-		String query = "max(doc('note')/feed/entry/id)+1";
+		String query = "max(doc('note')/note/id)+1";
 		return Integer.parseInt(executeXQuery(user, query));
 	}
-	
 }

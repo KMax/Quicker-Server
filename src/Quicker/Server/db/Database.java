@@ -3,7 +3,7 @@
 *	Copyright 2010 Quicker Team
 *
 *	Quicker Team is:
-*		Kirdeev Andrey (kirduk@yandex.ru)
+*	Kirdeev Andrey (kirduk@yandex.ru)
 * 	Koritniy Ilya (korizzz230@bk.ru)
 * 	Kolchin Maxim	(kolchinmax@gmail.com)
 */
@@ -32,6 +32,8 @@ import com.xhive.XhiveDriverFactory;
 import com.xhive.core.interfaces.XhiveDriverIf;
 import com.xhive.core.interfaces.XhiveSessionIf;
 import com.xhive.dom.interfaces.XhiveBlobNodeIf;
+import com.xhive.dom.interfaces.XhiveDocumentIf;
+import com.xhive.dom.interfaces.XhiveLSParserIf;
 import com.xhive.dom.interfaces.XhiveLibraryIf;
 import com.xhive.dom.interfaces.XhiveNodeIf;
 import com.xhive.error.XhiveException;
@@ -43,10 +45,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import javax.ejb.Stateless;
+import org.apache.xerces.parsers.DOMParser;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.ls.LSInput;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * This class encapsulate the low-level operations on xDB.
@@ -137,78 +146,124 @@ public class Database {
 	 * @param user
 	 * @param path
 	 * @param id
-	 * @param name
+	 * @param blobName 
 	 * @return
 	 * @throws IOException
-	 * @throws ClassNotFoundException 
 	 */
-	protected NoteBlob getBLOB(String user, String path,int id, String name) 
-			throws IOException, ClassNotFoundException{
+	protected ByteArrayInputStream getBLOBStream(String user, String path,
+			int id, String blobName)
+			throws IOException{
 		XhiveSessionIf session = getSession();
 		session.join();
 		session.setReadOnlyMode(true);
 		session.begin();
+
 		XhiveBlobNodeIf blob = (XhiveBlobNodeIf) session.getDatabase().getRoot().
-				getByPath(user+"/"+path+"/"+id+"/"+name);
+				getByPath(user+"/"+path+"/"+id+"/"+blobName);
 		BufferedInputStream in = new BufferedInputStream(blob.getContents());
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		int b;
 		while((b = in.read())!=-1){
 			out.write(b);
 		}
-		out.toByteArray();
 		ByteArrayInputStream blobIn = new ByteArrayInputStream(out.toByteArray());
 		out.close();
 		in.close();
-		NoteBlob newBlob = new NoteBlob(id, blobIn);
-		newBlob.name = name;
-		newBlob.setMetadata(blob.getMetadata());
-		blobIn.close();
 		session.leave();
 		returnSession(session);
-		return newBlob;
+		return blobIn;
 	}
 
-	protected List<NoteBlob> getAllBLOB(String user, String path, int id) {
-		
-		List<NoteBlob> tmpList = new LinkedList<NoteBlob>();
-		
+
+	/**
+	 *
+	 * @param user
+	 * @param path
+	 * @param name
+	 */
+	protected void deleteNode(String user, String path, String name){
 		XhiveSessionIf session = getSession();
 		session.join();
-		session.setReadOnlyMode(true);
+		session.setReadOnlyMode(false);
 		session.begin();
 
-		IterableIterator<? extends XhiveNodeIf> list = session.getDatabase()
-				.getRoot().getByPath(user+"/"+path+"/"+id).getChildren();
+		XhiveNodeIf oldNode = session.getDatabase().getRoot().getByPath(user+"/"+path+"/"+name);
+		session.getDatabase().getRoot().getByPath(user+"/"+path).removeChild(oldNode);
 
-		for (XhiveNodeIf i : list) {
-			if (i instanceof XhiveBlobNodeIf) {
-				NoteBlob newBlob = null;
-				XhiveBlobNodeIf blob = (XhiveBlobNodeIf) i;
-
-				BufferedInputStream blobIn = new BufferedInputStream(
-						blob.getContents());
-				ByteArrayInputStream blobOut;
-				byte[] b = new byte[(int)blob.getSize()];
-				int length;
-				try {
-					blobIn.read(b);
-					blobOut = new ByteArrayInputStream(b);
-					blobIn.close();
-					newBlob = new NoteBlob(id, blobOut);
-					blobOut.close();
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-
-				newBlob.name = blob.getName();
-				newBlob.setMetadata(blob.getMetadata());
-				tmpList.add(newBlob);
-			}
-		}
+		session.commit();
 		session.leave();
 		returnSession(session);
-		return tmpList;
+	}
+
+	/**
+	 * 
+	 * @param user
+	 * @param path
+	 * @param name
+	 */
+	protected void createLibrary(String user, String path ,String name){
+		XhiveSessionIf session = getSession();
+		session.join();
+		session.setReadOnlyMode(false);
+		session.begin();
+		
+		XhiveLibraryIf lif = (XhiveLibraryIf) session.getDatabase().getRoot().
+				getByPath(user+"/"+path);
+		XhiveLibraryIf nlib = lif.createLibrary();
+		nlib.setName(name);
+		lif.appendChild(nlib);
+
+		session.commit();
+		session.leave();
+		returnSession(session);
+	}
+
+	/**
+	 * 
+	 * @param user
+	 * @param path
+	 * @param id
+	 * @param content
+	 */
+	protected void createDocument(String user, String path, int id,String content){
+		XhiveSessionIf session = getSession();
+		session.join();
+		session.setReadOnlyMode(false);
+		session.begin();
+
+		XhiveLibraryIf noteLib = (XhiveLibraryIf) session.getDatabase().
+				getRoot().getByPath(user+"/"+path+"/"+id);
+		XhiveLSParserIf parser = noteLib.createLSParser();
+		LSInput lsinput = noteLib.createLSInput();
+		lsinput.setStringData(content);
+		XhiveDocumentIf doc = parser.parse(lsinput);
+		doc.setName(doc.getDocumentElement().getNodeName());
+		noteLib.appendChild(doc);
+		
+		session.commit();
+		session.leave();
+		returnSession(session);
+	}
+
+	protected void replaceDocument(String user, String path, int id,
+			String name, String content){
+		XhiveSessionIf session = getSession();
+		session.join();
+		session.setReadOnlyMode(false);
+		session.begin();
+
+		XhiveLibraryIf noteLib = (XhiveLibraryIf) session.getDatabase().
+				getRoot().getByPath(user+"/"+path+"/"+id);
+		XhiveLSParserIf parser = noteLib.createLSParser();
+		LSInput lsinput = noteLib.createLSInput();
+		lsinput.setStringData(content);
+		XhiveDocumentIf doc = parser.parse(lsinput);
+		doc.setName(name);
+		noteLib.replaceChild(doc, noteLib.get(name));
+
+		session.commit();
+		session.leave();
+		returnSession(session);
 	}
 
 	/**
@@ -228,33 +283,6 @@ public class Database {
 		}
 	}
 
-	protected void deleteNode(String user, String path, String name){
-		XhiveSessionIf session = getSession();
-		session.join();
-		session.setReadOnlyMode(false);
-		session.begin();
-		XhiveNodeIf oldNode = session.getDatabase().getRoot().getByPath(user+"/"+path+"/"+name);
-		session.getDatabase().getRoot().getByPath(user+"/"+path).removeChild(oldNode);
-		session.commit();
-		session.leave();
-		returnSession(session);
-	}
-
-	protected void createNode(String user, String path ,String name){
-		XhiveSessionIf session = getSession();
-		session.join();
-		session.setReadOnlyMode(false);
-		session.begin();
-		XhiveLibraryIf lif = (XhiveLibraryIf) session.getDatabase().getRoot().
-				getByPath(user+"/"+path);
-		XhiveLibraryIf nlib = lif.createLibrary();
-		nlib.setName(name);
-		lif.appendChild(nlib);
-		session.commit();
-		session.leave();
-		returnSession(session);
-	}
-
 	/**
 	 * Put back a session in sessionStack.
 	 * @param session com.xhive.core.interfaces.XhiveSessionIf
@@ -263,17 +291,8 @@ public class Database {
 		sessionStack.push(session);
 	}
 
-	public static void main(String args[]) throws IOException, ClassNotFoundException {
+	public static void main(String args[]){
 		Database d = new Database();
-		NoteBlob i = d.getBLOB("maxim","note",1,"1");
-			System.out.println("\n"+i.mimeType+"\n"+i.title);
-			BufferedInputStream fi = new BufferedInputStream(i.getInputStream());
-			FileOutputStream fo = new FileOutputStream(i.name);
-			int b;
-			while((b = fi.read())!=-1){
-				fo.write(b);
-			}
-			fo.close();
-			fi.close();
+
 	}
 }
