@@ -3,7 +3,7 @@
 *	Copyright 2010 Quicker Team
 *
 *	Quicker Team is:
-*		Kirdeev Andrey (kirduk@yandex.ru)
+*	Kirdeev Andrey (kirduk@yandex.ru)
 * 	Koritniy Ilya (korizzz230@bk.ru)
 * 	Kolchin Maxim	(kolchinmax@gmail.com)
 */
@@ -29,7 +29,6 @@
 package Quicker.Server;
 
 import Quicker.Server.db.UserDatabase;
-import com.xhive.error.xquery.XhiveXQueryException;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.HttpHeaders;
@@ -45,16 +44,12 @@ public class UserAuthorization {
 	
 	public UserAuthorization(){}
 	
-	public void Auth(HttpHeaders hh, String user)
-			throws SecurityException,XhiveXQueryException{
+	public boolean Auth(HttpHeaders hh, String user){
 		String code = hh.getRequestHeader(hh.AUTHORIZATION).get(0).substring(6);
-		try{
 		if(!(userdb.getCode(user).equals(code))){
-			throw new SecurityException();
+			return false;
 		}
-		}catch(NullPointerException npe){
-			throw new SecurityException();
-		}
+		return true;
 	}
  
 }
