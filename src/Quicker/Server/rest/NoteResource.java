@@ -3,7 +3,7 @@
 *	Copyright 2010 Quicker Team
 *
 *	Quicker Team is:
-*		Kirdeev Andrey (kirduk@yandex.ru)
+*	Kirdeev Andrey (kirduk@yandex.ru)
 * 	Koritniy Ilya (korizzz230@bk.ru)
 * 	Kolchin Maxim	(kolchinmax@gmail.com)
 */
@@ -31,6 +31,16 @@ package Quicker.Server.rest;
 import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
 import com.xhive.error.xquery.XhiveXQueryException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
@@ -44,6 +54,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -52,7 +63,7 @@ import javax.ws.rs.core.Response;
 
 @Path("/{user}/note/")
 @Stateless
-public class NoteResource {
+public class NoteResource extends Resource{
     @Context
     private UriInfo context;
 
@@ -70,7 +81,7 @@ public class NoteResource {
     }
 
 	/**
-	 * Посылает заметку по заданному id
+	 * Get a note by id
 	 * @param user - User login
 	 * @param id - Id of note
 	 * @return an instance of java.lang.String
@@ -80,42 +91,61 @@ public class NoteResource {
     @Produces("application/xml")
 	public Response getNote(@PathParam("user") String user, @PathParam("id") int id) {
 		Response r =null;
-		try{
-			userAuth.Auth(hh, user);
+		if(userAuth.Auth(hh, user)){
 			r = Response.ok(ndb.getNoteById(user, id)).build();
-		}catch(SecurityException se){
-			r = Response.status(Response.Status.UNAUTHORIZED)
-					.header("WWW-Authenticate", "Basic").build();
-		}catch(XhiveXQueryException xxe){
-			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}else{
+			r = unAuthorized();
 		}
 		return r;
 	}
 
-//	@Path("/{id}/{blobName}")
-//	@GET
-//	@Produces("*/*")
-//	public Response
+
+	/**
+	 * Get a media content by note id and media name
+	 * @param user  user name
+	 * @param id  note id
+	 * @param blobName  name of media
+	 * @return
+	 */
+	@Path("/{id}/media/{blobName}")
+	@GET
+	//@Produces("image/jpeg")
+	public Response getBLOB(@PathParam("user") String user, 
+			@PathParam("id") int id, @PathParam("blobName") String blobName){
+		Response r = null;
+		if(userAuth.Auth(hh, user)){
+			ByteArrayInputStream tmp = null;
+			try{
+				tmp = ndb.getBLOBStream(user, id, blobName);
+				r = Response.ok(tmp).build();
+			}finally{
+				try {
+					tmp.close();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
+		}else{
+			r = unAuthorized();
+		}
+		return r;
+	}
 
 	/**
 	 * Delete a note by id.
 	 * @param user 
 	 * @param id
-	 * @return an instance of javax.ws.rs.core.Response
+	 * @return 
 	 */
 	@Path("/{id}")
 	@DELETE
 	public Response deleteNote(@PathParam("user") String user, @PathParam("id") int id){
 		Response r =null;
-		try{
-			userAuth.Auth(hh, user);
+		if(userAuth.Auth(hh, user)){
 			ndb.deleteNote(user, id);
 			r = Response.ok().build();
-		}catch(SecurityException se){
-			r = Response.status(Response.Status.UNAUTHORIZED)
-					.header("WWW-Authenticate", "Basic").build();
-		}catch(XhiveXQueryException xxe){
-			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}else{
+			r = unAuthorized();
 		}
 		return r;
 	}
@@ -133,15 +163,11 @@ public class NoteResource {
 	public Response updateNote(@PathParam("user") String user,
 			@PathParam("id") int id, String data){
 		Response r = null;
-		try{
-			userAuth.Auth(hh, user);
+		if(userAuth.Auth(hh, user)){
 			ndb.changeNote(user, id, data);
 			r = Response.ok().build();
-		}catch(SecurityException se){
-			r = Response.status(Response.Status.UNAUTHORIZED)
-					.header("WWW-Authenticate", "Basic").build();
-		}catch(XhiveXQueryException xxe){
-			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}else{
+			r = unAuthorized();
 		}
 		return r;
 	}
@@ -158,16 +184,15 @@ public class NoteResource {
 	public Response addNote(@PathParam("user") String user,
 			@PathParam("id") int id, String data){
 		Response r = null;
-		try{
-			userAuth.Auth(hh, user);
-			String tmp = null;
-			tmp = ndb.addNote(user, data);
-			r = Response.ok(tmp).build();
-		}catch(SecurityException se){
-			r = Response.status(Response.Status.UNAUTHORIZED)
-					.header("WWW-Authenticate", "Basic").build();
-		}catch(XhiveXQueryException xxe){
-			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		if(userAuth.Auth(hh, user)){
+			try {
+				r = Response.ok().contentLocation(new URI(
+						"/" + user + "/note/" + ndb.addNote(user, data))).build();
+			} catch (URISyntaxException ex) {
+				ex.printStackTrace();
+			}
+		}else{
+			r = unAuthorized();
 		}
 		return r;
 	}

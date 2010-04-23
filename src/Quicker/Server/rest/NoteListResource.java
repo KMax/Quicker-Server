@@ -3,7 +3,7 @@
 *	Copyright 2010 Quicker Team
 *
 *	Quicker Team is:
-*		Kirdeev Andrey (kirduk@yandex.ru)
+*	Kirdeev Andrey (kirduk@yandex.ru)
 * 	Koritniy Ilya (korizzz230@bk.ru)
 * 	Kolchin Maxim	(kolchinmax@gmail.com)
 */
@@ -30,7 +30,6 @@ package Quicker.Server.rest;
 
 import Quicker.Server.UserAuthorization;
 import Quicker.Server.db.NoteDatabase;
-import com.xhive.error.xquery.XhiveXQueryException;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.Context;
@@ -48,7 +47,7 @@ import javax.ws.rs.core.Response;
 
 @Path("/{user}/notes/")
 @Stateless
-public class NoteListResource {
+public class NoteListResource extends Resource{
     @Context
     private UriInfo context;
 
@@ -64,6 +63,7 @@ public class NoteListResource {
 
     /** Creates a new instance of NoteListResource */
     public NoteListResource() {
+		super();
     }
 
 	/**
@@ -75,15 +75,10 @@ public class NoteListResource {
     @Produces("application/xml")
 	public Response getNoteList(@PathParam("user") String user) {
 		Response r =null;
-		try{
-			userAuth.Auth(hh,user);
-			String s = notedb.getNoteList(user);
-			r = Response.ok(s).build();
-		}catch(SecurityException se){
-			r = Response.status(Response.Status.UNAUTHORIZED)
-					.header("WWW-Authenticate", "Basic").build();
-		}catch(XhiveXQueryException xxe){
-			r = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		if(userAuth.Auth(hh,user)){
+			r = Response.ok(notedb.getNoteList(user)).build();
+		}else{
+			r = unAuthorized();
 		}
 		return r;
 	}
