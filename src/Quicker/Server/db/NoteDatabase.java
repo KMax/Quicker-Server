@@ -91,7 +91,15 @@ public class NoteDatabase extends Database{
 	 * @return
 	 */
 	public String getBLOBInfo(String user,int noteId,String blobName){
-		return null;
+		String query = "doc('note/"+noteId+"')" +
+						"/note/content/entity[@name = "+blobName+"]";
+		return executeXQuery(user, query);
+	}
+
+	public String getBLOBType(String user, int noteId, String blobName){
+		String query= "string(doc('note/1')" +
+				"/note/content/entity[@name = 1]/@type)";
+		return executeXQuery(user, query);
 	}
 
 	/**

@@ -43,6 +43,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMultipart;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.core.Context;
@@ -114,14 +119,28 @@ public class NoteResource extends Resource{
 			@PathParam("id") int id, @PathParam("blobName") String blobName){
 		Response r = null;
 		if(userAuth.Auth(hh, user)){
+			Multipart mp = new MimeMultipart();
+			BodyPart bp = new MimeBodyPart();
+			try {
+				bp.setContent(ndb.getBLOBInfo(user, id, blobName),
+						"application/xml");
+				mp.addBodyPart(bp);
+			} catch (MessagingException ex) {
+				ex.printStackTrace();
+			}
+
 			ByteArrayInputStream tmp = null;
 			try{
 				tmp = ndb.getBLOBStream(user, id, blobName);
-				r = Response.ok(tmp).build();
+				BodyPart stream = new MimeBodyPart();
+				stream.setContent(tmp,ndb.getBLOBType(user, id, blobName));
+				r = Response.ok(mp).build();
+			}catch(MessagingException me){
+				me.printStackTrace();
 			}finally{
-				try {
+				try{
 					tmp.close();
-				} catch (IOException ex) {
+				}catch(IOException ex){
 					ex.printStackTrace();
 				}
 			}
@@ -159,7 +178,7 @@ public class NoteResource extends Resource{
 	 */
 	@Path("/{id}")
 	@PUT
-	@Consumes("application/xml")
+	@Consumes("*/*")
 	public Response updateNote(@PathParam("user") String user,
 			@PathParam("id") int id, String data){
 		Response r = null;
@@ -180,7 +199,7 @@ public class NoteResource extends Resource{
 	 * @return an instance of javax.ws.rs.core.Response
 	 */
 	@POST
-	@Consumes("application/xml")
+	@Consumes("*/*")
 	public Response addNote(@PathParam("user") String user,
 			@PathParam("id") int id, String data){
 		Response r = null;
