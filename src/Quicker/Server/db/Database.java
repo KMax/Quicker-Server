@@ -234,6 +234,7 @@ public class Database {
 		XhiveLibraryIf noteLib = (XhiveLibraryIf) session.getDatabase().
 				getRoot().getByPath(user+"/"+path+"/"+id);
 		XhiveLSParserIf parser = noteLib.createLSParser();
+		System.out.println(content);
 		LSInput lsinput = noteLib.createLSInput();
 		lsinput.setStringData(content);
 		XhiveDocumentIf doc = parser.parse(lsinput);

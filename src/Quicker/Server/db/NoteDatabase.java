@@ -120,7 +120,7 @@ public class NoteDatabase extends Database{
 				"$i/id," +
 				"$i/title,"+
 				"$i/date,"+
-				"<extractions>{substring($i/content/text/text(),0,10)}</extractions>"+
+				"<extractions>{normalize-space(substring($i/content/text/text(),0,10))}</extractions>"+
 				"}" +
 				"</note>" +
 				"} " +
@@ -150,6 +150,7 @@ public class NoteDatabase extends Database{
 	public int addNote(String user, String doc){
 		Integer newId = generateID(user);
 		createLibrary(user, "note",newId.toString());
+		System.out.println(doc);
 		createDocument(user, "note", newId, doc);
 		return newId;
 	}
